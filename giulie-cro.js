@@ -18,7 +18,7 @@
 
   var NS = "__altivaGiulie";
   if (window[NS] && window[NS].loaded) return;          // idempotencia
-  window[NS] = { loaded: true, version: "2026-06-15.1" };
+  window[NS] = { loaded: true, version: "2026-06-18.1" };
 
   /* ---------- helpers ---------- */
   function ready(fn) {
@@ -60,7 +60,6 @@
       ".ag-trust__i{display:flex;align-items:flex-start;gap:8px;font-size:.82rem;line-height:1.25;color:#3a3a3a}" +
       ".ag-trust__i b{font-weight:600;color:#1a1a1a}" +
       ".ag-trust__ico{font-size:1rem;line-height:1.1;flex:0 0 auto}" +
-      ".ag-guarantee{margin:10px 0 2px;font-size:.82rem;line-height:1.3;color:#5a5147}" +
       "@media(min-width:769px){.ag-trust{grid-template-columns:1fr 1fr 1fr 1fr}}";
     document.head.appendChild(s);
   }
@@ -101,15 +100,15 @@
 
   /* ---------- #8 Bloque de confianza + garantía (PDP) ---------- */
   function trustBlock(realBtn) {
-    if (document.querySelector(".ag-trust")) return;
+    if (document.querySelector('[data-altiva-cro="trust"]')) return;
 
     var anchor = realBtn.closest("form") || realBtn.parentElement;
     if (!anchor) return;
 
     var ITEMS = [
-      ["🚚", "Envío a todo el país", "Despacho en 48 h, entrega en hasta 10 días hábiles."],
+      ["🚚", "Envío a todo el país", "Entrega en 3 a 7 días hábiles."],
       ["🔁", "Cambios dentro de 30 días", "Por rotura o daño, el envío del cambio lo pagamos nosotros."],
-      ["🤎", "Garantía de 7 días", "Si no cumplió tus expectativas, te devolvemos el dinero."],
+      ["🤎", "Garantía de 7 días", "¿El aroma no te convenció? Te devolvemos el dinero."],
       ["💳", "Pagá como quieras", "6 cuotas sin interés · 20% OFF con transferencia."]
     ];
     var grid = '<div class="ag-trust">';
@@ -121,9 +120,7 @@
 
     var wrap = document.createElement("div");
     wrap.setAttribute("data-altiva-cro", "trust");
-    wrap.innerHTML = grid +
-      '<p class="ag-guarantee">Garantía de 7 días 🤎 — Confiamos en nuestros productos; ' +
-      'si no cumplió tus expectativas, te devolvemos el dinero.</p>';
+    wrap.innerHTML = grid;
     anchor.parentNode.insertBefore(wrap, anchor.nextSibling);
   }
 
