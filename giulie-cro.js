@@ -6,10 +6,15 @@
  *
  * Features activos en este build:
  *   #6  Sticky CTA móvil (solo PDP, solo ≤768px)
- *   #8  Bloque de confianza + línea de garantía (solo PDP, junto al CTA)
+ *   #2  Cookie banner: auto-dismiss al primer scroll/tap (toda la tienda)
+ *   #f  WhatsApp flotante no tapa el sticky CTA (PDP móvil)
  *
- * Anclas estables del theme (verificadas en el DOM 2026-06-15):
- *   .js-addtocart  ·  #price_display / .js-price-display
+ * NOTA: el bloque de confianza/garantía/envío/pago lo provee la app **Wigy**
+ * (en el buy-box, junto al precio). Se quitó el #8 de este script para NO duplicar.
+ *
+ * Anclas estables del theme (verificadas en el DOM 2026-06-15/19):
+ *   .js-addtocart · #price_display/.js-price-display · .js-notification-cookie-banner
+ *   .js-acknowledge-cookies · .js-btn-fixed-bottom (WhatsApp flotante)
  *
  * Copy: textos confirmados por Giulié (copy-tienda-giulie.md, 2026-06-13).
  * =================================================================== */
@@ -18,7 +23,7 @@
 
   var NS = "__altivaGiulie";
   if (window[NS] && window[NS].loaded) return;          // idempotencia
-  window[NS] = { loaded: true, version: "2026-06-18.1" };
+  window[NS] = { loaded: true, version: "2026-06-19.2" };
 
   /* ---------- helpers ---------- */
   function ready(fn) {
@@ -54,14 +59,30 @@
       "-webkit-appearance:none;appearance:none}" +
       ".ag-sticky__btn:active{opacity:.85}" +
       "@media(max-width:768px){.ag-sticky.is-visible{display:flex}body.ag-has-sticky{padding-bottom:68px}}" +
-      /* --- bloque de confianza --- */
-      ".ag-trust{margin:14px 0 4px;padding:12px 0;border-top:1px solid #eceae5;border-bottom:1px solid #eceae5;" +
-      "display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}" +
-      ".ag-trust__i{display:flex;align-items:flex-start;gap:8px;font-size:.82rem;line-height:1.25;color:#3a3a3a}" +
-      ".ag-trust__i b{font-weight:600;color:#1a1a1a}" +
-      ".ag-trust__ico{font-size:1rem;line-height:1.1;flex:0 0 auto}" +
-      "@media(min-width:769px){.ag-trust{grid-template-columns:1fr 1fr 1fr 1fr}}";
+      /* --- WhatsApp flotante: que no pise el sticky CTA en móvil --- */
+      "@media(max-width:768px){body.ag-has-sticky .js-btn-fixed-bottom{bottom:80px}}";
     document.head.appendChild(s);
+  }
+
+  /* ---------- #2 Cookie banner: que no tape el precio/CTA ---------- */
+  // El banner está fijo abajo y tapa la zona de compra en el primer render móvil.
+  // Lo cerramos al primer scroll/tap usando el propio botón del theme (set-cookie,
+  // no se vuelve a mostrar). No falsea consentimiento: es una notificación, no un gate.
+  function tameCookieBanner() {
+    var done = false;
+    function dismiss() {
+      if (done) return;
+      var banner = document.querySelector(".js-notification-cookie-banner");
+      var ack = document.querySelector(".js-acknowledge-cookies");
+      if (banner && banner.offsetParent !== null && ack) {
+        done = true;
+        ack.click();
+        window.removeEventListener("scroll", dismiss);
+        window.removeEventListener("touchstart", dismiss);
+      }
+    }
+    window.addEventListener("scroll", dismiss, { passive: true });
+    window.addEventListener("touchstart", dismiss, { passive: true });
   }
 
   /* ---------- #6 Sticky CTA móvil (PDP) ---------- */
@@ -98,40 +119,14 @@
     }
   }
 
-  /* ---------- #8 Bloque de confianza + garantía (PDP) ---------- */
-  function trustBlock(realBtn) {
-    if (document.querySelector('[data-altiva-cro="trust"]')) return;
-
-    var anchor = realBtn.closest("form") || realBtn.parentElement;
-    if (!anchor) return;
-
-    var ITEMS = [
-      ["🚚", "Envío a todo el país", "Entrega en 3 a 7 días hábiles."],
-      ["🔁", "Cambios dentro de 30 días", "Por rotura o daño, el envío del cambio lo pagamos nosotros."],
-      ["🤎", "Garantía de 7 días", "¿El aroma no te convenció? Te devolvemos el dinero."],
-      ["💳", "Pagá como quieras", "6 cuotas sin interés · 20% OFF con transferencia."]
-    ];
-    var grid = '<div class="ag-trust">';
-    for (var i = 0; i < ITEMS.length; i++) {
-      grid += '<div class="ag-trust__i"><span class="ag-trust__ico">' + ITEMS[i][0] + '</span>' +
-        '<span><b>' + ITEMS[i][1] + '</b><br>' + ITEMS[i][2] + '</span></div>';
-    }
-    grid += '</div>';
-
-    var wrap = document.createElement("div");
-    wrap.setAttribute("data-altiva-cro", "trust");
-    wrap.innerHTML = grid;
-    anchor.parentNode.insertBefore(wrap, anchor.nextSibling);
-  }
-
   /* ---------- init ---------- */
   ready(function () {
-    if (!isPDP()) return;                 // de momento, features solo en PDP
+    try { tameCookieBanner(); } catch (e) {}   // toda la tienda
+    if (!isPDP()) return;                       // el resto, solo en PDP
     injectCSS();
     waitFor(".js-addtocart", function (btn) {
       // Si el producto está sin stock, el theme oculta/deshabilita el botón: respetamos eso
       try { stickyCTA(btn); } catch (e) {}
-      try { trustBlock(btn); } catch (e) {}
     });
   });
 })();
