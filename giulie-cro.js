@@ -12,6 +12,9 @@
  *       ancho completo en móvil para mostrar el nombre entero (no "Bloo…")
  *   #7  Cross-sell "Completá tu ritual" (refill + home spray) bajo el botón,
  *       SOLO en el PDP del difusor. v1 = cards que linkean al PDP del complemento.
+ *   #1  Hero A1: overlay de DESEO + CTA sobre el slider del home (deseo > oferta)
+ *       + franja de reaseguro con la promo una sola vez. SOLO en el home.
+ *       Requiere un slide SIN texto horneado (subir bg-living.png al slider).
  *
  * NOTA: el bloque de confianza/garantía/envío/pago lo provee la app **Wigy**
  * (en el buy-box, junto al precio). Se quitó el #8 de este script para NO duplicar.
@@ -27,7 +30,7 @@
 
   var NS = "__altivaGiulie";
   if (window[NS] && window[NS].loaded) return;          // idempotencia
-  window[NS] = { loaded: true, version: "2026-06-20.3" };
+  window[NS] = { loaded: true, version: "2026-06-20.4" };
 
   /* ---------- helpers ---------- */
   function ready(fn) {
@@ -81,7 +84,33 @@
       ".ag-xs__name{font-size:.86rem;font-weight:600;color:#1a1a1a;line-height:1.2}" +
       ".ag-xs__desc{font-size:.76rem;color:#6a625a;line-height:1.2}" +
       ".ag-xs__price{font-size:.86rem;font-weight:700;color:#1a1a1a}" +
-      ".ag-xs__cta{flex:0 0 auto;font-size:.8rem;font-weight:700;color:#1a1a1a;white-space:nowrap;align-self:center}";
+      ".ag-xs__cta{flex:0 0 auto;font-size:.8rem;font-weight:700;color:#1a1a1a;white-space:nowrap;align-self:center}" +
+      /* --- #1 Hero A1: overlay deseo + CTA sobre el slider del home --- */
+      ".ag-hero{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;" +
+      "justify-content:flex-end;pointer-events:none;font-family:inherit;color:#fff}" +
+      ".ag-hero__scrim{position:absolute;inset:0;z-index:0;" +
+      "background:linear-gradient(180deg,rgba(20,16,12,.12) 0%,rgba(20,16,12,0) 30%," +
+      "rgba(20,16,12,.30) 56%,rgba(20,16,12,.80) 100%)}" +
+      ".ag-hero__in{position:relative;z-index:1;padding:24px 22px 22px;pointer-events:none}" +
+      ".ag-hero__eyebrow{font-size:11px;font-weight:600;letter-spacing:.30em;text-transform:uppercase;" +
+      "color:rgba(255,255,255,.95);text-shadow:0 1px 12px rgba(0,0,0,.55)}" +
+      ".ag-hero__head{font-size:42px;line-height:1.04;font-weight:600;margin:12px 0 0;" +
+      "font-family:Georgia,'Times New Roman',serif;text-shadow:0 2px 24px rgba(0,0,0,.40)}" +
+      ".ag-hero__sub{font-size:15px;line-height:1.4;margin:12px 0 0;max-width:300px;" +
+      "color:rgba(255,255,255,.94);text-shadow:0 1px 14px rgba(0,0,0,.45)}" +
+      ".ag-hero__cta{pointer-events:auto;display:inline-flex;align-items:center;margin-top:20px;" +
+      "background:#fff;color:#1a1410;font-weight:600;font-size:16px;letter-spacing:.02em;" +
+      "padding:14px 28px;border-radius:999px;text-decoration:none;box-shadow:0 10px 30px rgba(0,0,0,.22)}" +
+      ".ag-hero__cta:active{opacity:.9}" +
+      ".ag-reassure{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 6px;" +
+      "background:#2b211a;color:#efe6d8;font-size:11px;letter-spacing:.05em;text-align:center;" +
+      "padding:11px 10px;line-height:1.3}" +
+      ".ag-reassure b{color:#fff;font-weight:600}.ag-reassure .sep{opacity:.45;margin:0 3px}" +
+      "@media(min-width:769px){.ag-hero{justify-content:center}" +
+      ".ag-hero__scrim{background:linear-gradient(90deg,rgba(20,16,12,.62) 0%,rgba(20,16,12,.30) 42%,rgba(20,16,12,0) 70%)}" +
+      ".ag-hero__in{padding:0 96px;max-width:620px}.ag-hero__head{font-size:72px}" +
+      ".ag-hero__sub{font-size:21px;max-width:460px}.ag-hero__cta{font-size:18px;padding:17px 40px}" +
+      ".ag-reassure{font-size:13px;padding:14px 10px}}";
     document.head.appendChild(s);
   }
 
@@ -172,11 +201,48 @@
     anchor.parentNode.insertBefore(wrap, anchor.nextSibling);
   }
 
+  /* ---------- #1 Hero A1: overlay de deseo + CTA sobre el slider del home ---------- */
+  // El slider del theme Recife es SOLO imágenes (sin texto ni link en el DOM).
+  // Cubrimos con una capa de texto legible (scrim) + CTA real. Requiere un slide
+  // SIN texto horneado (subir bg-living.png), si no la promo vieja se transparenta.
+  function heroOverlay() {
+    if (!/(^|\s)template-home(\s|$)/.test(document.body.className)) return; // solo home
+    waitFor(".js-main-slider-section", function (sec) {
+      if (sec.querySelector(".ag-hero")) return;                 // idempotencia
+      if (getComputedStyle(sec).position === "static") sec.style.position = "relative";
+
+      var hero = document.createElement("div");
+      hero.className = "ag-hero";
+      hero.innerHTML =
+        '<div class="ag-hero__scrim"></div>' +
+        '<div class="ag-hero__in">' +
+          '<div class="ag-hero__eyebrow">THE HOOD &middot; FRAGANCIAS DE AUTOR</div>' +
+          '<h1 class="ag-hero__head">Tu casa,<br>con identidad propia</h1>' +
+          '<p class="ag-hero__sub">Difusores y velas de autor: eleg&iacute; tu barrio.</p>' +
+          '<a class="ag-hero__cta" href="https://www.giuliefragancias.com/difusores/">' +
+            'Descubr&iacute; tu aroma &rarr;</a>' +
+        '</div>';
+      sec.appendChild(hero);
+
+      // Franja de reaseguro: la promo, UNA sola vez, debajo del slider
+      if (!document.querySelector(".ag-reassure")) {
+        var band = document.createElement("div");
+        band.className = "ag-reassure";
+        band.innerHTML =
+          '<span>6 cuotas sin inter&eacute;s</span><span class="sep">&middot;</span>' +
+          '<span><b>20% OFF</b> con transferencia</span><span class="sep">&middot;</span>' +
+          '<span>Env&iacute;o gratis +$90.000</span>';
+        sec.parentNode.insertBefore(band, sec.nextSibling);
+      }
+    });
+  }
+
   /* ---------- init ---------- */
   ready(function () {
+    injectCSS();                               // <style> global (las reglas de PDP son inertes en otras páginas)
     try { tameCookieBanner(); } catch (e) {}   // toda la tienda
+    try { heroOverlay(); } catch (e) {}        // solo home (se auto-limita por template-home)
     if (!isPDP()) return;                       // el resto, solo en PDP
-    injectCSS();
     waitFor(".js-addtocart", function (btn) {
       // Si el producto está sin stock, el theme oculta/deshabilita el botón: respetamos eso
       try { stickyCTA(btn); } catch (e) {}
