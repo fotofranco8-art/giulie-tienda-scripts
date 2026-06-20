@@ -8,6 +8,8 @@
  *   #6  Sticky CTA móvil (solo PDP, solo ≤768px)
  *   #2  Cookie banner: auto-dismiss al primer scroll/tap (toda la tienda)
  *   #f  WhatsApp flotante no tapa el sticky CTA (PDP móvil)
+ *   #3  Aroma legible: el select del bundle (.variant-product-row) se apila a
+ *       ancho completo en móvil para mostrar el nombre entero (no "Bloo…")
  *
  * NOTA: el bloque de confianza/garantía/envío/pago lo provee la app **Wigy**
  * (en el buy-box, junto al precio). Se quitó el #8 de este script para NO duplicar.
@@ -23,7 +25,7 @@
 
   var NS = "__altivaGiulie";
   if (window[NS] && window[NS].loaded) return;          // idempotencia
-  window[NS] = { loaded: true, version: "2026-06-19.2" };
+  window[NS] = { loaded: true, version: "2026-06-20.1" };
 
   /* ---------- helpers ---------- */
   function ready(fn) {
@@ -60,7 +62,11 @@
       ".ag-sticky__btn:active{opacity:.85}" +
       "@media(max-width:768px){.ag-sticky.is-visible{display:flex}body.ag-has-sticky{padding-bottom:68px}}" +
       /* --- WhatsApp flotante: que no pise el sticky CTA en móvil --- */
-      "@media(max-width:768px){body.ag-has-sticky .js-btn-fixed-bottom{bottom:80px}}";
+      "@media(max-width:768px){body.ag-has-sticky .js-btn-fixed-bottom{bottom:80px}}" +
+      /* --- #3 Aroma legible: el select del bundle se apila a ancho completo en móvil --- */
+      "@media(max-width:768px){.variant-product-row{flex-wrap:wrap}" +
+      ".variant-product-row .select-wrap{width:100%;flex:1 1 100%;margin:0 0 6px}" +
+      ".variant-product-row .select{width:100%;min-width:0}}";
     document.head.appendChild(s);
   }
 
