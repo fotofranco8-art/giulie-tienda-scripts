@@ -12,10 +12,9 @@
  *       ancho completo en móvil para mostrar el nombre entero (no "Bloo…")
  *   #7  Cross-sell "Completá tu ritual" (refill + home spray) bajo el botón,
  *       SOLO en el PDP del difusor. v1 = cards que linkean al PDP del complemento.
- *   #1  Hero A1 (dirección C "Habitación"): banda de texto crema DEBAJO del slider
- *       (no overlay → texto siempre legible, sin scrim) con DM Serif Display + CTA
- *       + franja de reaseguro (promo una sola vez). SOLO en el home.
- *       Requiere subir bg-living.png como slide (imagen limpia arriba).
+ *
+ * HERO: se diseña como IMÁGENES con el texto horneado (gpt-image-2 + producto real),
+ * subidas al slider del home (versión mobile + desktop). NO lo maneja este script.
  *
  * NOTA: el bloque de confianza/garantía/envío/pago lo provee la app **Wigy**
  * (en el buy-box, junto al precio). Se quitó el #8 de este script para NO duplicar.
@@ -31,7 +30,7 @@
 
   var NS = "__altivaGiulie";
   if (window[NS] && window[NS].loaded) return;          // idempotencia
-  window[NS] = { loaded: true, version: "2026-06-20.5" };
+  window[NS] = { loaded: true, version: "2026-06-20.6" };
 
   /* ---------- helpers ---------- */
   function ready(fn) {
@@ -85,23 +84,7 @@
       ".ag-xs__name{font-size:.86rem;font-weight:600;color:#1a1a1a;line-height:1.2}" +
       ".ag-xs__desc{font-size:.76rem;color:#6a625a;line-height:1.2}" +
       ".ag-xs__price{font-size:.86rem;font-weight:700;color:#1a1a1a}" +
-      ".ag-xs__cta{flex:0 0 auto;font-size:.8rem;font-weight:700;color:#1a1a1a;white-space:nowrap;align-self:center}" +
-      /* --- #1 Hero A1 (dir C): banda de texto crema DEBAJO del slider (sin scrim) --- */
-      ".ag-herob{background:#EFE9DE;color:#1C1A17;padding:30px 26px 34px;" +
-      "font-family:'DM Sans',-apple-system,'Segoe UI',Roboto,sans-serif}" +
-      ".ag-herob__k{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:#6E2B3A}" +
-      ".ag-herob__h{font-family:'DM Serif Display',Georgia,'Times New Roman',serif;font-weight:400;" +
-      "font-size:40px;line-height:1.06;letter-spacing:-.015em;margin:12px 0 0}" +
-      ".ag-herob__s{font-size:14px;line-height:1.5;font-weight:300;color:#4a463f;margin:12px 0 0;max-width:320px}" +
-      ".ag-herob__c{display:inline-block;margin-top:22px;background:#1C1A17;color:#EFE9DE;font-size:15px;" +
-      "font-weight:500;letter-spacing:.02em;padding:14px 30px;border-radius:2px;text-decoration:none}" +
-      ".ag-herob__c:active{opacity:.9}" +
-      ".ag-reassure{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 6px;" +
-      "background:#2b211a;color:#efe6d8;font-size:11px;letter-spacing:.05em;text-align:center;" +
-      "padding:11px 10px;line-height:1.3}" +
-      ".ag-reassure b{color:#fff;font-weight:600}.ag-reassure .sep{opacity:.45;margin:0 3px}" +
-      "@media(min-width:769px){.ag-herob{padding:48px 96px 52px}.ag-herob__h{font-size:60px}" +
-      ".ag-herob__s{font-size:17px;max-width:480px}.ag-reassure{font-size:13px;padding:14px 10px}}";
+      ".ag-xs__cta{flex:0 0 auto;font-size:.8rem;font-weight:700;color:#1a1a1a;white-space:nowrap;align-self:center}";
     document.head.appendChild(s);
   }
 
@@ -192,50 +175,11 @@
     anchor.parentNode.insertBefore(wrap, anchor.nextSibling);
   }
 
-  /* ---------- #1 Hero A1 (dir C): banda de texto crema DEBAJO del slider ---------- */
-  // El slider del theme Recife es SOLO imágenes. En vez de taparlo con scrim, ponemos
-  // el texto en una banda crema DEBAJO (texto siempre legible, look premium). Requiere
-  // subir bg-living.png como slide (imagen limpia arriba).
-  function heroBand() {
-    if (!/(^|\s)template-home(\s|$)/.test(document.body.className)) return; // solo home
-    waitFor(".js-main-slider-section", function (sec) {
-      if (document.querySelector('[data-altiva-cro="herob"]')) return;       // idempotencia
-      // Fuentes premium (una sola vez); con display=swap, si tarda usa el fallback serif
-      if (!document.getElementById("ag-fonts")) {
-        var lk = document.createElement("link");
-        lk.id = "ag-fonts"; lk.rel = "stylesheet";
-        lk.href = "https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap";
-        document.head.appendChild(lk);
-      }
-      var band = document.createElement("div");
-      band.className = "ag-herob";
-      band.setAttribute("data-altiva-cro", "herob");
-      band.innerHTML =
-        '<div class="ag-herob__k">THE HOOD &middot; AROMA DE AUTOR</div>' +
-        '<h1 class="ag-herob__h">Tu casa, con identidad propia</h1>' +
-        '<p class="ag-herob__s">Difusores y velas de autor. Eleg&iacute; tu barrio.</p>' +
-        '<a class="ag-herob__c" href="https://www.giuliefragancias.com/difusores/">Descubr&iacute; tu aroma &rarr;</a>';
-      sec.parentNode.insertBefore(band, sec.nextSibling);
-
-      // Franja de reaseguro: la promo, UNA sola vez, debajo de la banda
-      if (!document.querySelector(".ag-reassure")) {
-        var re = document.createElement("div");
-        re.className = "ag-reassure";
-        re.innerHTML =
-          '<span>6 cuotas sin inter&eacute;s</span><span class="sep">&middot;</span>' +
-          '<span><b>20% OFF</b> con transferencia</span><span class="sep">&middot;</span>' +
-          '<span>Env&iacute;o gratis +$90.000</span>';
-        band.parentNode.insertBefore(re, band.nextSibling);
-      }
-    });
-  }
-
   /* ---------- init ---------- */
   ready(function () {
-    injectCSS();                               // <style> global (las reglas de PDP son inertes en otras páginas)
     try { tameCookieBanner(); } catch (e) {}   // toda la tienda
-    try { heroBand(); } catch (e) {}           // solo home (se auto-limita por template-home)
     if (!isPDP()) return;                       // el resto, solo en PDP
+    injectCSS();
     waitFor(".js-addtocart", function (btn) {
       // Si el producto está sin stock, el theme oculta/deshabilita el botón: respetamos eso
       try { stickyCTA(btn); } catch (e) {}
