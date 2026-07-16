@@ -193,7 +193,14 @@
     wrap.className = "ag-xs";
     wrap.setAttribute("data-altiva-cro", "xsell");
     wrap.innerHTML = html;
-    anchor.parentNode.insertBefore(wrap, anchor.nextSibling);
+
+    // Insertar DESPUÉS de #product-description (no después del botón)
+    var descEl = document.querySelector("#product-description");
+    if (descEl && descEl.nextSibling) {
+      descEl.parentNode.insertBefore(wrap, descEl.nextSibling);
+    } else {
+      anchor.parentNode.insertBefore(wrap, anchor.nextSibling);  // fallback
+    }
   }
 
   /* ---------- init ---------- */
