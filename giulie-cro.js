@@ -412,6 +412,57 @@
     host.appendChild(panel.wrap);
   }
 
+  /* ---------- #29 Acordeón "Elegí tu estilo" — variantes por aroma/producto ----------
+   * Muestra las opciones de tapa/color disponibles (ej. Negro&Negro vs Plateado&Natural).
+   * Inyecta un acordeón que explica cada variante de forma legible. */
+  var STYLE_VARIANTS = {
+    "difusor": {
+      "Negro&Negro": "Tapa negra con varillas negras — aspecto minimalista y elegante.",
+      "Plateado&Natural": "Tapa plateada con varillas naturales — calidez y contraste."
+    },
+    "home-spray": {
+      // home spray típicamente no tiene variantes visuales, pero si las tuviera irían acá
+    },
+    "vela": {
+      // velas típicamente vienen en un color fijo, pero puede haber variantes de tamaño, etc.
+    },
+    "refill": {
+      // refills no tienen variantes visuales, se recarga igual
+    },
+    "vela-noir": {
+      // vela noir viene en un color fijo (negro)
+    }
+  };
+
+  function injectElegíTuEstiloPanel() {
+    if (document.querySelector('[data-altiva-cro="acc-estilo"]')) return;
+    var host = accordionHost();
+    if (!host) return;
+
+    // Detecta el tipo de producto (difusor, home-spray, etc.)
+    var path = location.pathname.toLowerCase();
+    var tipo = null;
+    if (path.indexOf("/difusor-") > -1) tipo = "difusor";
+    else if (path.indexOf("/home-spray-") > -1) tipo = "home-spray";
+    else if (path.indexOf("/vela-noir-") > -1) tipo = "vela-noir";
+    else if (path.indexOf("/vela-") > -1) tipo = "vela";
+    else if (path.indexOf("/refill-") > -1) tipo = "refill";
+
+    if (!tipo || !STYLE_VARIANTS[tipo]) return;  // no hay variantes o tipo desconocido
+    var variants = STYLE_VARIANTS[tipo];
+    if (!Object.keys(variants).length) return;   // sin opciones
+
+    injectAccordionCSS();
+    var panel = buildAccordionPanel("acc-estilo", "Elegí tu estilo");
+    var html = "";
+    for (var style in variants) {
+      html += "<p><strong>" + style + "</strong> — " + variants[style] + "</p>";
+    }
+    if (!html) return;
+    panel.content.innerHTML = html;
+    host.appendChild(panel.wrap);
+  }
+
   /* ---------- #3 Clonar estrellas al sticky CTA ---------- */
   function starsToSticky() {
     waitFor(".ag-sticky", function (bar) {
@@ -512,6 +563,7 @@
       try { pillVariants(); } catch (e) {}
       try { injectNotasPanel(); } catch (e) {}
       try { injectEnvioPanel(); } catch (e) {}
+      try { injectElegíTuEstiloPanel(); } catch (e) {}
     });
   });
 })();
