@@ -12,6 +12,9 @@
  *       ancho completo en móvil para mostrar el nombre entero (no "Bloo…")
  *   #7  Cross-sell "Completá tu ritual" (refill + home spray) bajo el botón,
  *       SOLO en el PDP del difusor. v1 = cards que linkean al PDP del complemento.
+ *   #28 Paneles nuevos de acordeón en el PDP — "Notas olfativas" (por aroma) y
+ *       "Envío y cambios" — clonan la clase del acordeón nativo de Rio para verse
+ *       100% integrados (ver Bloque 2, injectNotasPanel/injectEnvioPanel).
  *
  * HERO: se diseña como IMÁGENES con el texto horneado (gpt-image-2 + producto real),
  * subidas al slider del home (versión mobile + desktop). NO lo maneja este script.
@@ -39,7 +42,7 @@
 
   var NS = "__altivaGiulie";
   if (window[NS] && window[NS].loaded) return;          // idempotencia
-  window[NS] = { loaded: true, version: "2026-07-07.7-rio" };
+  window[NS] = { loaded: true, version: "2026-07-16.1-rio" };
   var TERRA = "#B25C32", TERRA_HOVER = "#9A4E2B", INK = "#171717", LINE = "#E6DFD5";
 
   /* ---------- helpers ---------- */
@@ -212,14 +215,15 @@
  * Segundo IIFE self-contained (NS propio __altivaGiulieNext). Idempotente.
  * Features: #1 cookie dismiss por timer · #2 notas olfativas · #3 estrellas
  * al sticky · #10 framing refill · #11 varillas · #23 ocultar "(0)" ·
- * #25 empty-cart CTA · #14 GA4+Clarity (IDs PLACEHOLDER → inertes hasta cargar reales).
+ * #25 empty-cart CTA · #14 GA4+Clarity (IDs PLACEHOLDER → inertes hasta cargar reales) ·
+ * #28 paneles de acordeón "Notas olfativas" + "Envío y cambios" (2026-07-16).
  * ⚠️ Verificar en navegador real (#2/#13 dependen del DOM de la app de bundle).
  * =================================================================== */
 (function () {
   "use strict";
   var NS = "__altivaGiulieNext";
   if (window[NS] && window[NS].loaded) return;
-  window[NS] = { loaded: true, version: "2026-07-07.2-rio" };
+  window[NS] = { loaded: true, version: "2026-07-16.1-rio" };
 
   /* ---------- config ---------- */
   var GA4_ID = "G-XXXXXXXXXX";          // TODO Giulié/Altiva: ID real de GA4
@@ -304,6 +308,108 @@
       sel.addEventListener("change", sync);
       if (sel.parentNode) sel.parentNode.insertBefore(note, sel.nextSibling);
     });
+  }
+
+  /* ---------- #28 Acordeón PDP: paneles nuevos "Notas olfativas" + "Envío y cambios" ----------
+   * Clonan la ESTRUCTURA del acordeón nativo de Rio (.js-accordion-container /
+   * .js-accordion-toggle .subtitle / .js-accordion-content, estilado en giulie-rio-custom.css)
+   * para verse 100% integrados, pero con toggle propio en JS (no asumimos que el binding
+   * nativo del theme alcance nodos insertados después del render inicial).
+   * "Envío y cambios" usa el texto CONFIRMADO por Giulié en copy-tienda-giulie.md (2026-06-13):
+   * entrega "no supera los 10 días hábiles". Una corrección posterior del script (18/06, NO
+   * reconfirmada con Giulié) lo había bajado a "3 a 7 días hábiles" — si Franco confirma ese
+   * dato con Giulié, actualizar el texto de abajo. */
+  function injectAccordionCSS() {
+    if (document.getElementById("ag-acc-css")) return;
+    var s = document.createElement("style");
+    s.id = "ag-acc-css";
+    s.textContent =
+      ".ag-acc__toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer}" +
+      ".ag-acc__icon{font-size:1.1rem;color:#B25C32;font-weight:600;flex:0 0 auto;margin-left:10px}" +
+      ".ag-acc__content{padding-top:10px;font-size:.86rem;line-height:1.5;color:#171717}" +
+      ".ag-acc__content p{margin:0 0 8px}.ag-acc__content p:last-child{margin-bottom:0}";
+    document.head.appendChild(s);
+  }
+
+  function accordionHost() {
+    var any = document.querySelector(".js-accordion-container");
+    return any ? any.parentNode : null;
+  }
+
+  function buildAccordionPanel(id, title) {
+    var wrap = document.createElement("div");
+    wrap.className = "js-accordion-container";
+    wrap.setAttribute("data-altiva-cro", id);
+    var toggle = document.createElement("div");
+    toggle.className = "js-accordion-toggle ag-acc__toggle";
+    toggle.setAttribute("role", "button");
+    toggle.setAttribute("tabindex", "0");
+    toggle.innerHTML = '<span class="subtitle">' + title + '</span><span class="ag-acc__icon">+</span>';
+    var content = document.createElement("div");
+    content.className = "js-accordion-content ag-acc__content";
+    content.style.display = "none";
+    wrap.appendChild(toggle);
+    wrap.appendChild(content);
+    function toggleOpen() {
+      var open = content.style.display !== "none";
+      content.style.display = open ? "none" : "block";
+      toggle.querySelector(".ag-acc__icon").textContent = open ? "+" : "−";
+    }
+    toggle.addEventListener("click", toggleOpen);
+    toggle.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleOpen(); }
+    });
+    return { wrap: wrap, content: content };
+  }
+
+  // Aroma actual: post-split viene en la URL (/productos/difusor-bloomsbury/), pre-split
+  // (producto-madre con <select>) viene del dropdown — igual detección que injectAromaNotes().
+  function productAroma() {
+    var m = location.pathname.match(/\/productos\/(?:difusor|home-spray|vela-noir|vela|refill)-([a-z0-9]+)/);
+    if (m && NOTAS[m[1]]) return m[1];
+    var sel = Array.prototype.filter.call(document.querySelectorAll("select"), function (s) {
+      return Array.prototype.some.call(s.options, function (o) { return NOTAS[(o.value || "").toLowerCase()]; });
+    })[0];
+    return sel ? { select: sel } : null;
+  }
+
+  function injectNotasPanel() {
+    if (document.querySelector('[data-altiva-cro="acc-notas"]')) return;
+    var host = accordionHost();
+    if (!host) return;
+    var aroma = productAroma();
+    if (!aroma) return;                       // sin aroma (kits, varillas): no aplica
+
+    injectAccordionCSS();
+    var panel = buildAccordionPanel("acc-notas", "Notas olfativas");
+    host.appendChild(panel.wrap);
+
+    function render(key) {
+      panel.content.innerHTML = NOTAS[key]
+        ? "<p>🤎 " + NOTAS[key] + "</p>"
+        : "<p>Elegí un aroma para ver sus notas.</p>";
+    }
+    if (typeof aroma === "string") {
+      render(aroma);                          // post-split: aroma fijo en la URL
+    } else {
+      render((aroma.select.value || "").toLowerCase());
+      aroma.select.addEventListener("change", function () {
+        render((aroma.select.value || "").toLowerCase());
+      });
+    }
+  }
+
+  function injectEnvioPanel() {
+    if (document.querySelector('[data-altiva-cro="acc-envio"]')) return;
+    var host = accordionHost();
+    if (!host) return;
+    injectAccordionCSS();
+    var panel = buildAccordionPanel("acc-envio", "Envío y cambios");
+    panel.content.innerHTML =
+      "<p><strong>Envío</strong> — Despachamos en 48 hs y la entrega no supera los 10 días hábiles a todo el país.</p>" +
+      "<p><strong>Cambios</strong> — Tenés 30 días para cambiarlo. Si llega roto o dañado, el envío del cambio lo pagamos nosotros.</p>" +
+      "<p><strong>Garantía</strong> — 7 días: si no cumplió tus expectativas, te devolvemos el dinero.</p>";
+    host.appendChild(panel.wrap);
   }
 
   /* ---------- #3 Clonar estrellas al sticky CTA ---------- */
@@ -404,6 +510,8 @@
       try { refillFraming(btn); } catch (e) {}
       try { addVarillasCrossSell(); } catch (e) {}
       try { pillVariants(); } catch (e) {}
+      try { injectNotasPanel(); } catch (e) {}
+      try { injectEnvioPanel(); } catch (e) {}
     });
   });
 })();
