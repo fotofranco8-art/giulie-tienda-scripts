@@ -434,19 +434,17 @@
     }
   };
 
-  /* ---------- #30 Acordeón "Sobre este producto" — mueve descripción a acordeón colapsado ---------- */
-  function moveDescriptionToAccordion() {
-    if (document.querySelector('[data-altiva-cro="acc-descr"]')) return;
+  /* ---------- #30 Mover descripción arriba de los acordeones ---------- */
+  function moveDescriptionUp() {
+    if (document.querySelector('[data-altiva-cro="desc-moved"]')) return;
+    var descEl = document.querySelector("#product-description");
+    if (!descEl) return;
     var host = accordionHost();
     if (!host) return;
-    var descEl = document.querySelector("#product-description .product-description");
-    if (!descEl) return;
 
-    injectAccordionCSS();
-    var panel = buildAccordionPanel("acc-descr", "Sobre este producto");
-    panel.content.innerHTML = descEl.innerHTML;
-    descEl.parentNode.style.display = "none";  // oculta el original
-    host.appendChild(panel.wrap);
+    descEl.setAttribute("data-altiva-cro", "desc-moved");
+    descEl.style.display = "block";  // asegurar que esté visible
+    host.parentNode.insertBefore(descEl, host);  // insertar ANTES del primer acordeón
   }
 
   function injectElegíTuEstiloPanel() {
@@ -576,7 +574,7 @@
       try { refillFraming(btn); } catch (e) {}
       try { addVarillasCrossSell(); } catch (e) {}
       try { pillVariants(); } catch (e) {}
-      // try { moveDescriptionToAccordion(); } catch (e) {}  // DESACTIVADO: error en DOM selector
+      try { moveDescriptionUp(); } catch (e) {}
       try { injectNotasPanel(); } catch (e) {}
       try { injectEnvioPanel(); } catch (e) {}
       try { injectElegíTuEstiloPanel(); } catch (e) {}
