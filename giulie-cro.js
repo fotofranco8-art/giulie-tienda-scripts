@@ -19,9 +19,18 @@
  * NOTA: el bloque de confianza/garantía/envío/pago lo provee la app **Wigy**
  * (en el buy-box, junto al precio). Se quitó el #8 de este script para NO duplicar.
  *
- * Anclas estables del theme (verificadas en el DOM 2026-06-15/19):
+ * RE-PORT THEME RIO (2026-07-07): componentes inyectados re-estilados al look
+ *   glodcasa/Rio (terracota #B25C32, esquinas 2px, uppercase, Public Sans heredada).
+ *   Cross-sell del difusor re-cableado POR AROMA (/difusor-<aroma> → refill/home-spray
+ *   del mismo aroma) tras el split de catálogo. Notas olfativas ahora van en la
+ *   descripción del producto (inertes acá). Empty-cart soporta selectores de Rio.
+ *   La mayoría de anclas del framework Tiendanube son idénticas en Rio (verificado
+ *   contra el DOM de glodcasa): .js-addtocart, .js-price-display, cookie banner.
+ *
+ * Anclas estables del theme (verificadas en el DOM 2026-06-15/19 + Rio 2026-07-07):
  *   .js-addtocart · #price_display/.js-price-display · .js-notification-cookie-banner
  *   .js-acknowledge-cookies · .js-btn-fixed-bottom (WhatsApp flotante)
+ *   Rio empty-cart: .js-empty-ajax-cart · [data-component="cart.empty-message"]
  *
  * Copy: textos confirmados por Giulié (copy-tienda-giulie.md, 2026-06-13).
  * =================================================================== */
@@ -30,7 +39,8 @@
 
   var NS = "__altivaGiulie";
   if (window[NS] && window[NS].loaded) return;          // idempotencia
-  window[NS] = { loaded: true, version: "2026-06-20.6" };
+  window[NS] = { loaded: true, version: "2026-07-07.7-rio" };
+  var TERRA = "#B25C32", TERRA_HOVER = "#9A4E2B", INK = "#171717", LINE = "#E6DFD5";
 
   /* ---------- helpers ---------- */
   function ready(fn) {
@@ -55,14 +65,14 @@
     var s = document.createElement("style");
     s.id = "ag-css";
     s.textContent =
-      /* --- sticky CTA móvil --- */
+      /* --- sticky CTA móvil (look Rio: terracota, 2px, uppercase) --- */
       ".ag-sticky{position:fixed;left:0;right:0;bottom:0;z-index:9990;display:none;" +
       "align-items:center;justify-content:space-between;gap:12px;" +
-      "padding:10px 14px;background:#fff;border-top:1px solid #e7e3dd;" +
+      "padding:10px 14px;background:#FFFAF3;border-top:1px solid #E6DFD5;" +
       "box-shadow:0 -6px 18px rgba(0,0,0,.08);font-family:inherit}" +
-      ".ag-sticky__price{font-weight:700;font-size:1.05rem;line-height:1.1;color:#1a1a1a;white-space:nowrap}" +
-      ".ag-sticky__btn{flex:1 1 auto;max-width:62%;border:0;border-radius:8px;padding:13px 16px;" +
-      "font-size:1rem;font-weight:700;cursor:pointer;background:#1a1a1a;color:#fff;" +
+      ".ag-sticky__price{font-weight:700;font-size:1.05rem;line-height:1.1;color:#171717;white-space:nowrap}" +
+      ".ag-sticky__btn{flex:1 1 auto;max-width:62%;border:0;border-radius:2px;padding:13px 16px;" +
+      "font-size:.9rem;font-weight:700;letter-spacing:.02em;text-transform:uppercase;cursor:pointer;background:#B25C32;color:#fff;" +
       "-webkit-appearance:none;appearance:none}" +
       ".ag-sticky__btn:active{opacity:.85}" +
       "@media(max-width:768px){.ag-sticky.is-visible{display:flex}body.ag-has-sticky{padding-bottom:68px}}" +
@@ -73,18 +83,18 @@
       "@media(max-width:768px){.variant-product-row{flex-wrap:wrap!important}" +
       ".variant-product-row .select-wrap{width:100%!important;flex:1 1 100%!important;margin:0 0 6px!important}" +
       ".variant-product-row .select{width:100%!important;min-width:0!important}}" +
-      /* --- #7 Cross-sell "Completá tu ritual" --- */
-      ".ag-xs{margin:18px 0 4px;padding:14px 0;border-top:1px solid #eceae5}" +
-      ".ag-xs__t{font-size:.95rem;font-weight:700;color:#1a1a1a;margin:0 0 10px}" +
-      ".ag-xs__card{display:flex;align-items:center;gap:10px;padding:8px;border:1px solid #eceae5;" +
-      "border-radius:10px;margin-bottom:8px;text-decoration:none;color:inherit;background:#fff}" +
-      ".ag-xs__card:active{background:#faf9f7}" +
-      ".ag-xs__img{width:56px;height:56px;object-fit:cover;border-radius:8px;flex:0 0 auto;background:#f4f2ee}" +
+      /* --- #7 Cross-sell "Completá tu ritual" (look Rio: 2px, líneas E6DFD5, cta terracota) --- */
+      ".ag-xs{margin:18px 0 4px;padding:14px 0;border-top:1px solid #E6DFD5}" +
+      ".ag-xs__t{font-size:.95rem;font-weight:700;color:#171717;margin:0 0 10px}" +
+      ".ag-xs__card{display:flex;align-items:center;gap:10px;padding:8px;border:1px solid #E6DFD5;" +
+      "border-radius:2px;margin-bottom:8px;text-decoration:none;color:inherit;background:#fff}" +
+      ".ag-xs__card:active{background:#FAF8F4}" +
+      ".ag-xs__img{width:56px;height:56px;object-fit:cover;border-radius:2px;flex:0 0 auto;background:#f4f2ee}" +
       ".ag-xs__info{display:flex;flex-direction:column;gap:2px;flex:1 1 auto;min-width:0}" +
-      ".ag-xs__name{font-size:.86rem;font-weight:600;color:#1a1a1a;line-height:1.2}" +
+      ".ag-xs__name{font-size:.86rem;font-weight:600;color:#171717;line-height:1.2}" +
       ".ag-xs__desc{font-size:.76rem;color:#6a625a;line-height:1.2}" +
-      ".ag-xs__price{font-size:.86rem;font-weight:700;color:#1a1a1a}" +
-      ".ag-xs__cta{flex:0 0 auto;font-size:.8rem;font-weight:700;color:#1a1a1a;white-space:nowrap;align-self:center}";
+      ".ag-xs__price{font-size:.86rem;font-weight:700;color:#171717}" +
+      ".ag-xs__cta{flex:0 0 auto;font-size:.8rem;font-weight:700;color:#B25C32;white-space:nowrap;align-self:center}";
     document.head.appendChild(s);
   }
 
@@ -143,26 +153,34 @@
     }
   }
 
-  /* ---------- #7 Cross-sell "Completá tu ritual" (solo PDP difusor) ---------- */
-  function isDifusor() { return location.pathname.indexOf("/difusor-the-hood") >= 0; }
+  /* ---------- #7 Cross-sell "Completá tu ritual" (PDP de difusor, POR AROMA) ----------
+   * Tras el split de catálogo cada difusor es /difusor-<aroma>. Ofrecemos el refill
+   * y el home spray DEL MISMO AROMA (/refill-<aroma>, /home-spray-<aroma>). Sin <img>
+   * porque las URLs de foto por-aroma no están garantizadas (Franco sube las reales). */
+  function difusorAroma() {
+    var m = location.pathname.match(/\/difusor-([a-z0-9-]+?)\/?$/);
+    if (!m) return null;
+    var a = m[1];
+    return (a === "the-hood") ? null : a;   // ignora el producto-madre viejo
+  }
+  function isDifusor() { return difusorAroma() !== null; }
   function crossSell(realBtn) {
     if (document.querySelector('[data-altiva-cro="xsell"]')) return;
+    var aroma = difusorAroma();
+    if (!aroma) return;
     var anchor = realBtn.closest("form") || realBtn.parentElement;
     if (!anchor) return;
 
     var ITEMS = [
-      { url: "/productos/refill1/",
-        img: "https://acdn-us.mitiendanube.com/stores/006/937/942/products/42-24ebef50a09a68122c17636822993962-1024-1024.png",
-        name: "Refill para Difusor", desc: "Rinde 2 recargas: tu aroma dura el triple", price: "$32.500" },
-      { url: "/productos/home-spray-the-hood/",
-        img: "https://acdn-us.mitiendanube.com/stores/006/937/942/products/24-c92260d13a464797ad17636815187763-1024-1024.png",
+      { url: "/productos/refill-" + aroma + "/",
+        name: "Refill del mismo aroma", desc: "Rinde 2 recargas: tu aroma dura el triple", price: "$32.500" },
+      { url: "/productos/home-spray-" + aroma + "/",
         name: "Home Spray", desc: "El mismo aroma para refrescar al instante", price: "$24.500" }
     ];
     var html = '<p class="ag-xs__t">Completá tu ritual 🤎</p>';
     for (var i = 0; i < ITEMS.length; i++) {
       var it = ITEMS[i];
       html += '<a class="ag-xs__card" href="' + it.url + '">' +
-        '<img class="ag-xs__img" src="' + it.img + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
         '<span class="ag-xs__info"><span class="ag-xs__name">' + it.name + '</span>' +
         '<span class="ag-xs__desc">' + it.desc + '</span>' +
         '<span class="ag-xs__price">' + it.price + '</span></span>' +
@@ -201,7 +219,7 @@
   "use strict";
   var NS = "__altivaGiulieNext";
   if (window[NS] && window[NS].loaded) return;
-  window[NS] = { loaded: true, version: "2026-06-22.1" };
+  window[NS] = { loaded: true, version: "2026-07-07.2-rio" };
 
   /* ---------- config ---------- */
   var GA4_ID = "G-XXXXXXXXXX";          // TODO Giulié/Altiva: ID real de GA4
@@ -263,7 +281,11 @@
     }, 1800);
   }
 
-  /* ---------- #2 Notas olfativas bajo el selector de aroma ---------- */
+  /* ---------- #2 Notas olfativas bajo el selector de aroma ----------
+   * NOTA (post-split Rio): tras separar cada aroma en un producto propio ya NO hay
+   * <select> de aromas, así que esta función queda INERTE (no encuentra selects con
+   * aromas). Las notas olfativas ahora van HORNEADAS en la descripción de cada
+   * producto (ver split_aromas.py). Se deja acá para el período de transición. */
   function injectAromaNotes() {
     if (document.querySelector("[data-altiva-cro='notas']")) return;
     var selects = document.querySelectorAll("select");
@@ -293,7 +315,7 @@
       var score = rating.getAttribute("data-score") || "5.0";
       var span = document.createElement("span");
       span.className = "ag-sticky__stars";
-      span.style.cssText = "font-size:.78rem;color:#1a1a1a;font-weight:600;white-space:nowrap;margin-right:6px";
+      span.style.cssText = "font-size:.78rem;color:#171717;font-weight:600;white-space:nowrap;margin-right:6px";
       span.textContent = "★ " + score;
       var priceEl = bar.querySelector(".ag-sticky__price");
       if (priceEl) priceEl.insertAdjacentElement("afterend", span);
@@ -308,14 +330,14 @@
     if (!anchor) return;
     var box = document.createElement("div");
     box.setAttribute("data-altiva-cro", "refill-framing");
-    box.style.cssText = "margin:10px 0;padding:10px 12px;background:#faf9f7;border:1px solid #eceae5;border-radius:10px;font-size:.84rem;color:#1a1a1a;line-height:1.35";
+    box.style.cssText = "margin:10px 0;padding:10px 12px;background:#FAF8F4;border:1px solid #E6DFD5;border-left:3px solid #B25C32;border-radius:2px;font-size:.84rem;color:#171717;line-height:1.35";
     box.innerHTML = "♻️ <strong>Rinde hasta 2 recargas.</strong> Sale ~<strong>$16.250 por carga</strong> vs $27.000 un difusor nuevo. Tu aroma dura el triple sin empezar de cero.";
     anchor.parentNode.insertBefore(box, anchor);
   }
 
   /* ---------- #11 Cross-sell: sumar Varillas al bloque del difusor ---------- */
   function addVarillasCrossSell() {
-    if (location.pathname.indexOf("/difusor-the-hood") < 0) return;
+    if (location.pathname.indexOf("/difusor-") < 0) return;   // cualquier difusor-<aroma>
     waitFor("[data-altiva-cro='xsell']", function (wrap) {
       if (wrap.querySelector("[data-altiva-cro='xsell-varillas']")) return;
       var a = document.createElement("a");
@@ -323,7 +345,6 @@
       a.setAttribute("data-altiva-cro", "xsell-varillas");
       a.href = "/productos/varillas/";
       a.innerHTML =
-        '<img class="ag-xs__img" src="https://acdn-us.mitiendanube.com/stores/006/937/942/products/varillas-1024-1024.png" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
         '<span class="ag-xs__info"><span class="ag-xs__name">Varillas de Rattan</span>' +
         '<span class="ag-xs__desc">Repuesto para refrescar la difusión</span>' +
         '<span class="ag-xs__price">$1.900</span></span>' +
@@ -349,14 +370,14 @@
     var body = document.body.textContent || "";
     if (body.indexOf("carrito de compras está vacío") < 0 && body.indexOf("carrito está vacío") < 0) return;
     if (document.querySelector("[data-altiva-cro='cart-cta']")) return;
-    var empty = document.querySelector(".js-cart-empty, .cart-empty") ||
+    var empty = document.querySelector(".js-cart-empty, .cart-empty, .js-empty-ajax-cart, [data-component='cart.empty-message']") ||
       Array.prototype.find.call(document.querySelectorAll("p,div"), function (n) { return /vac[ií]o/.test(n.textContent) && n.children.length === 0; });
     if (!empty) return;
     var a = document.createElement("a");
     a.setAttribute("data-altiva-cro", "cart-cta");
     a.href = "/productos/";
     a.textContent = "Descubrí tu aroma →";
-    a.style.cssText = "display:inline-block;margin:14px 0;padding:12px 22px;background:#1a1a1a;color:#fff;border-radius:8px;text-decoration:none;font-weight:700";
+    a.style.cssText = "display:inline-block;margin:14px 0;padding:12px 22px;background:#B25C32;color:#fff;border-radius:2px;text-decoration:none;font-weight:700;text-transform:uppercase;letter-spacing:.02em;font-size:.85rem";
     empty.insertAdjacentElement("afterend", a);
   }
 

@@ -4,7 +4,25 @@ Scripts CRO de la tienda de **Giulié (The Hood)** — `giulie4.mitiendanube.com
 Este repo es la **fuente de verdad** (control de versiones). El archivo desplegado se **hostea en el Portal de Partners** (app "Altiva Ads"), NO en jsDelivr.
 
 ## Archivos
-- `giulie-cro.js` — sticky CTA móvil (PDP) + bloque de confianza (PDP). Un solo archivo.
+- `giulie-cro.js` — script CRO (sticky CTA móvil, cross-sell, cookie dismiss, empty-cart).
+  **Re-portado al theme Rio (2026-07-07)**: componentes re-estilados a terracota/2px/uppercase
+  y cross-sell del difusor re-cableado POR AROMA tras el split de catálogo.
+- `giulie-rio-custom.css` — **CSS custom para el theme Rio**. Reproduce 1:1 el look de
+  glodcasa (grilla, cards, controles de listado, selector de variantes) con terracota
+  #B25C32 como único acento. Se pega en el editor de Rio → *Personalizar tu tienda →
+  (Avanzado) Código CSS*. Generado desde el DOM real de glodcasa.
+- `split_aromas.py` — reestructura de catálogo: un PRODUCTO independiente por aroma en
+  todas las categorías (~25 productos finales). Dry-run por defecto; `APPLY=1` crea vía API.
+- `REDIRECTS.md` — lista de 301 (handles madre viejos → categoría) para cargar en el Dashboard.
+
+## Migración estética → look glodcasa (theme Rio, 2026-07)
+glodcasa.com corre sobre el theme **Rio** de Tiendanube; Giulié usa **Recife**. La migración
+= cambiar Giulié a Rio (en un **preview sin publicar**) + configurar tokens en el editor +
+pegar `giulie-rio-custom.css` + split de catálogo + re-port del CRO. Ver el plan completo en
+`~/.claude/plans/https-glodcasa-com-quiero-migrar-la-tingly-piglet.md`.
+
+Orden: **Fase 1** (tema Rio + CSS + CRO, reversible) → **Fase 2** (split de catálogo, con el
+look ya aprobado). Preview-only hasta OK de Franco. Rollback del tema = re-publicar Recife.
 
 ## Despliegue (IMPORTANTE — leer)
 La Scripts API ya **no acepta `src` externo** (da 422): el JS debe estar hosteado bajo el dominio del Partner.
