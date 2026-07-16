@@ -30,7 +30,14 @@
   --accent-color-opacity-20: #B25C3233;
 }
 
-/* ---- terracota helpers (estados del acento) ---- */
+/* ---- terracota helpers (estados del acento) ----
+ * FIX 2026-07-16: faltaba el estado BASE (no-hover) del botón primario — solo
+ * había :hover. El token nativo de Rio para fondo de botón no está heredando
+ * el acento (o no quedó seteado en el editor), así que lo forzamos acá para
+ * no depender de eso. Verificado en vivo: sin esto el CTA quedaba negro. */
+.btn-primary, .item-actions .btn,
+.section-single-product .js-addtocart,
+input.js-addtocart { background: #B25C32 !important; color: #fff !important; border-color: #B25C32 !important; }
 .btn-primary:hover, .item-actions .btn:hover,
 .section-single-product .js-addtocart:hover { background: #9A4E2B !important; }
 
