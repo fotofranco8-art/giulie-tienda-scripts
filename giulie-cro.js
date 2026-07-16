@@ -434,18 +434,10 @@
     }
   };
 
-  /* ---------- #30 Mover descripción arriba de los acordeones ---------- */
-  function moveDescriptionUp() {
-    if (document.querySelector('[data-altiva-cro="desc-moved"]')) return;
-    var descEl = document.querySelector("#product-description");
-    if (!descEl) return;
-    var host = accordionHost();
-    if (!host) return;
-
-    descEl.setAttribute("data-altiva-cro", "desc-moved");
-    descEl.style.display = "block";  // asegurar que esté visible
-    host.parentNode.insertBefore(descEl, host);  // insertar ANTES del primer acordeón
-  }
+  /* ---------- #30 REMOVIDO: no inyectar descripción ----------
+   * La descripción se renderiza naturalmente en Tiendanube.
+   * Cualquier inyección JS interfiere con el layout del cross-sell.
+   */
 
   function injectElegíTuEstiloPanel() {
     if (document.querySelector('[data-altiva-cro="acc-estilo"]')) return;
