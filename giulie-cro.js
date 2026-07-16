@@ -574,7 +574,7 @@
       try { refillFraming(btn); } catch (e) {}
       try { addVarillasCrossSell(); } catch (e) {}
       try { pillVariants(); } catch (e) {}
-      try { moveDescriptionUp(); } catch (e) {}
+      // try { moveDescriptionUp(); } catch (e) {}  // ERROR: desactivado, descripción se ve naturalmente
       try { injectNotasPanel(); } catch (e) {}
       try { injectEnvioPanel(); } catch (e) {}
       try { injectElegíTuEstiloPanel(); } catch (e) {}
