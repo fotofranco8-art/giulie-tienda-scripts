@@ -434,6 +434,21 @@
     }
   };
 
+  /* ---------- #30 Acordeón "Sobre este producto" — mueve descripción a acordeón colapsado ---------- */
+  function moveDescriptionToAccordion() {
+    if (document.querySelector('[data-altiva-cro="acc-descr"]')) return;
+    var host = accordionHost();
+    if (!host) return;
+    var descEl = document.querySelector("#product-description .product-description");
+    if (!descEl) return;
+
+    injectAccordionCSS();
+    var panel = buildAccordionPanel("acc-descr", "Sobre este producto");
+    panel.content.innerHTML = descEl.innerHTML;
+    descEl.parentNode.style.display = "none";  // oculta el original
+    host.appendChild(panel.wrap);
+  }
+
   function injectElegíTuEstiloPanel() {
     if (document.querySelector('[data-altiva-cro="acc-estilo"]')) return;
     var host = accordionHost();
@@ -561,6 +576,7 @@
       try { refillFraming(btn); } catch (e) {}
       try { addVarillasCrossSell(); } catch (e) {}
       try { pillVariants(); } catch (e) {}
+      try { moveDescriptionToAccordion(); } catch (e) {}
       try { injectNotasPanel(); } catch (e) {}
       try { injectEnvioPanel(); } catch (e) {}
       try { injectElegíTuEstiloPanel(); } catch (e) {}
