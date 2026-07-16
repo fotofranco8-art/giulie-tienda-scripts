@@ -576,7 +576,7 @@
       try { refillFraming(btn); } catch (e) {}
       try { addVarillasCrossSell(); } catch (e) {}
       try { pillVariants(); } catch (e) {}
-      try { moveDescriptionToAccordion(); } catch (e) {}
+      // try { moveDescriptionToAccordion(); } catch (e) {}  // DESACTIVADO: error en DOM selector
       try { injectNotasPanel(); } catch (e) {}
       try { injectEnvioPanel(); } catch (e) {}
       try { injectElegíTuEstiloPanel(); } catch (e) {}
